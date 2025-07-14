@@ -16,16 +16,36 @@ function DownloaderSection() {
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleDownload = () => {
-    if (!url.trim()) return;
-    
-    setIsProcessing(true);
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      alert('This is a demo interface. In a real implementation, this would process the download.');
-    }, 2000);
-  };
+  const handleDownload = async () => {
+  if (!url.trim()) return;
+
+  setIsProcessing(true);
+  try {
+    const response = await fetch('http://localhost:4000/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) throw new Error('Download failed');
+
+    // Convert response into a downloadable video file
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'video.mp4'; // or let server name it
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    alert(error.message);
+    console.error('Download error:', error);
+  }
+  setIsProcessing(false);
+};
+
 
   return (
     <section className="relative z-10 flex-1 flex items-center justify-center px-6">
